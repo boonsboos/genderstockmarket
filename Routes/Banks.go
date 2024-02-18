@@ -56,3 +56,10 @@ func WithdrawFromBank(context *gin.Context) {
 func DepositInBank(context *gin.Context) {
 
 }
+
+// GET /bank/account/:id/newsletter
+//
+// returns the bank newsletter (only available if account holder)
+func BankNewsletter(context *gin.Context) {
+
+}

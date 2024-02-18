@@ -1,7 +1,7 @@
 package main
 
 import (
-	auth "gns500/Auth"
+	auth "spectrum300/Auth"
 
 	"github.com/gin-gonic/gin"
 )

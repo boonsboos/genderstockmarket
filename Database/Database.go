@@ -2,8 +2,8 @@ package database
 
 import (
 	"context"
-	util "gns500/Util"
 	"log"
+	util "spectrum300/Util"
 
 	"github.com/jackc/pgx/v4"
 )

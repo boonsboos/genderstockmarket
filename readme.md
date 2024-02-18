@@ -9,4 +9,22 @@ a build-your-own-client incremental game where you you need to trade to make mon
 
 compete for the leaderboards and grow your firm
 
-the G&S 500 is waiting for you
+the Spectrum 300 is waiting for you!
+
+## building
+
+- go 1.21 (or greater)
+- postgres 16 (or greater)
+
+run `Database/Migrations/Up.pgsql` on your database
+
+create a file in the project root called `options.json` in the following format:
+
+```json
+{
+    "databaseURL": "theURLToYourPostgresDatabaseHere",
+    "databaseName": "yourDatabaseNameHere"
+}
+```
+
+build the project with `go build .` and run the executable

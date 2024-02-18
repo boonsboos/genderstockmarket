@@ -1,8 +1,8 @@
 package auth
 
 import (
-	database "gns500/Database"
 	"log"
+	database "spectrum300/Database"
 	"time"
 
 	"github.com/gin-gonic/gin"
