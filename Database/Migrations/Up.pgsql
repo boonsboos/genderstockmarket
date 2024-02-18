@@ -6,7 +6,7 @@ CREATE TABLE Players (
     Username varchar(24) NOT NULL,
     NetWorth NUMERIC(102, 2) NOT NULL,
 
-    UNIQUE (Username),
+    UNIQUE (Username)
 );
 
 -- //
@@ -20,7 +20,7 @@ CREATE TABLE Firms (
     UNIQUE (FirmLead), -- Player can only own one firm at once
 
     -- if a player deletes their account, delete their firm too
-    FOREIGN KEY (FirmLead) REFERENCES Players (ID) ON DELETE CASCADE,
+    FOREIGN KEY (FirmLead) REFERENCES Players (ID) ON DELETE CASCADE
 );
 
 CREATE TABLE Player_Firm (
@@ -30,7 +30,7 @@ CREATE TABLE Player_Firm (
     UNIQUE (PlayerID), -- Player can only be in one firm at once
 
     FOREIGN KEY (PlayerID) REFERENCES Players (ID) ON DELETE CASCADE,
-    FOREIGN KEY (FirmID) REFERENCES Firms (ID) ON DELETE CASCADE,
+    FOREIGN KEY (FirmID) REFERENCES Firms (ID) ON DELETE CASCADE
 );
 
 -- //
@@ -42,7 +42,7 @@ CREATE TABLE Companies(
 
     -- prevent duplicates
     UNIQUE (CompanyName),
-    UNIQUE (StockName),
+    UNIQUE (StockName)
 );
 
 -- history of stock prices
@@ -54,7 +54,7 @@ CREATE TABLE Company_StockPrice (
     -- should never be updated twice at the same time!
     UNIQUE (CompanyID, Updated),
 
-    FOREIGN KEY (CompanyID) REFERENCES Companies (ID) ON DELETE RESTRICT,
+    FOREIGN KEY (CompanyID) REFERENCES Companies (ID) ON DELETE RESTRICT
 );
 
 CREATE TABLE Company_BalanceSheet (
@@ -66,7 +66,7 @@ CREATE TABLE Company_BalanceSheet (
     Equity NUMERIC(102, 2) NOT NULL,
     Reservers NUMERIC(102, 2) NOT NULL,
 
-    FOREIGN KEY (CompanyID) REFERENCES Companies (ID) ON DELETE CASCADE,
+    FOREIGN KEY (CompanyID) REFERENCES Companies (ID) ON DELETE CASCADE
 );
 
 -- //
@@ -79,7 +79,7 @@ CREATE TABLE Banks (
     -- surely we should never charge more than 2 billion to open an account
     AccountFee integer NOT NULL,
 
-    UNIQUE (BankName),
+    UNIQUE (BankName)
 );
 
 CREATE TABLE Bank_Accounts (
@@ -89,7 +89,7 @@ CREATE TABLE Bank_Accounts (
     Balance NUMERIC(102,2) DEFAULT 0,
 
     FOREIGN KEY (BankID) REFERENCES Banks (ID) ON DELETE CASCADE,
-    FOREIGN KEY (PlayerID) REFERENCES Players (ID) ON DELETE CASCADE,
+    FOREIGN KEY (PlayerID) REFERENCES Players (ID) ON DELETE CASCADE
 );
 
 -- how much cash reserves the bank has for loans
@@ -97,7 +97,7 @@ CREATE TABLE Bank_Reserves (
     BankID integer PRIMARY KEY,
     Balance NUMERIC (102,2) NOT NULL,
 
-    FOREIGN KEY (BankID) REFERENCES Banks (ID) ON DELETE CASCADE,
+    FOREIGN KEY (BankID) REFERENCES Banks (ID) ON DELETE CASCADE
 );
 
 -- //
@@ -105,7 +105,7 @@ CREATE TABLE Bank_Reserves (
 CREATE TABLE News (
     Template text, -- sprintf format string
     Targeted varchar(8) NOT NULL, -- the entity that is targeted
-    Positive boolean, -- can be null, at that point let it be random
+    Positive boolean -- can be null, at that point let it be random
 );
 
 -- //
@@ -121,5 +121,5 @@ CREATE TABLE Market (
     Bought boolean, -- false = sold, true = bought, unknown = error 
 
     FOREIGN KEY (PlayerID) REFERENCES Players (ID) ON DELETE RESTRICT,
-    FOREIGN KEY (CompanyID) REFERENCES Companies (ID) ON DELETE RESTRICT,
+    FOREIGN KEY (CompanyID) REFERENCES Companies (ID) ON DELETE RESTRICT
 );
