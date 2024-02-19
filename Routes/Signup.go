@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"log"
 	"math/rand"
 	"net/http"
 	util "spectrum300/Util"
@@ -18,12 +17,8 @@ const allowedChars = "_-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRST
 
 func Signup(context *gin.Context) {
 
-	// generate random state string of at least 16 characters
-	state := make([]byte, 32)
-
-	for character := range state {
-		state[character] = allowedChars[rand.Int63()%int64(len(allowedChars))]
-	}
+	// generate random state string of at least 32 characters
+	state = util.GenerateRandomString(32)
 
 	// redirect to github OAuth portal
 	context.Redirect(http.StatusPermanentRedirect,
@@ -39,10 +34,18 @@ func Signup(context *gin.Context) {
 }
 
 func SubmitSignup(context *gin.Context) {
+	authCode, found := context.GetPostForm("code")
+	if !found || authCode == "" {
+		context.String(http.StatusForbidden, "failed to log in, try again")
+		time.Sleep(3 * time.Second)
+		context.Redirect(http.StatusPermanentRedirect, "/login")
+	}
 
-	log.Println(context.Request)
-	// oauth callback
+	// use code to make request for username
 	// create new player
-	// create new auth client
-	// redirect user to signup complete page
+	// save player to database
+
+	// create a new oauth client
+
+	// redirect to success (play?) page
 }

@@ -13,7 +13,8 @@ import (
 	"github.com/vgarvardt/go-pg-adapter/pgx4adapter"
 )
 
-var authServer server.Server
+var AuthServer server.Server
+var ClientStore oauthpg.ClientStore
 
 // https://github.com/go-oauth2/oauth2 readme
 func InitAuthServer(router *gin.Engine) {
@@ -24,7 +25,7 @@ func InitAuthServer(router *gin.Engine) {
 		log.Fatal("Failed to created token store:", err.Error())
 	}
 	log.Println("Token store OK")
-	clientStore, err := oauthpg.NewClientStore(adapter)
+	ClientStore, err := oauthpg.NewClientStore(adapter)
 	if err != nil {
 		log.Fatal("Failed to created client store:", err.Error())
 	}
@@ -32,7 +33,7 @@ func InitAuthServer(router *gin.Engine) {
 
 	manager := manage.NewDefaultManager()
 
-	manager.MapClientStorage(clientStore)
+	manager.MapClientStorage(ClientStore)
 
 	manager.MapTokenStorage(tokenStore)
 
