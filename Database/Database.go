@@ -10,7 +10,7 @@ import (
 
 var DatabaseConnection Database = NewDatabase()
 
-// simple holder for the database handle
+// simple holder for the database handle.
 //
 // can build some DAO stuff around it
 type Database struct {
@@ -18,13 +18,17 @@ type Database struct {
 }
 
 func NewDatabase() Database {
-	conn, err := pgx.Connect(context.TODO(), util.Options.DatabaseURL+"/"+util.Options.DatabaseName+"?sslmode=disable")
+	conn, err := pgx.Connect(context.Background(), util.Options.DatabaseURL+"/"+util.Options.DatabaseName+"?sslmode=disable")
 	if err != nil {
-		log.Println("Failed to connect to database:", err.Error())
+		log.Fatalln("Failed to connect to database:", err.Error())
 	}
 	log.Println("Database connection OK")
 
 	return Database{
 		Conn: conn,
 	}
+}
+
+func (d *Database) Close() {
+	d.Conn.Close(context.Background())
 }

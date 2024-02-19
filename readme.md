@@ -23,7 +23,9 @@ create a file in the project root called `options.json` in the following format:
 ```json
 {
     "databaseURL": "theURLToYourPostgresDatabaseHere",
-    "databaseName": "yourDatabaseNameHere"
+    "databaseName": "yourDatabaseNameHere",
+    "githubID": "yourGithubOAuthAppIDHere",
+    "githubToken": "yourGithubOAuthSecretHere"
 }
 ```
 

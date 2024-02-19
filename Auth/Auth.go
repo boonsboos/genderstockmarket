@@ -19,8 +19,16 @@ var authServer server.Server
 func InitAuthServer(router *gin.Engine) {
 	// database stores
 	adapter := pgx4adapter.NewConn(database.DatabaseConnection.Conn)
-	tokenStore, _ := oauthpg.NewTokenStore(adapter, oauthpg.WithTokenStoreGCInterval(time.Minute))
-	clientStore, _ := oauthpg.NewClientStore(adapter)
+	tokenStore, err := oauthpg.NewTokenStore(adapter, oauthpg.WithTokenStoreGCInterval(time.Minute))
+	if err != nil {
+		log.Fatal("Failed to created token store:", err.Error())
+	}
+	log.Println("Token store OK")
+	clientStore, err := oauthpg.NewClientStore(adapter)
+	if err != nil {
+		log.Fatal("Failed to created client store:", err.Error())
+	}
+	log.Println("Client store OK")
 
 	manager := manage.NewDefaultManager()
 
@@ -45,4 +53,6 @@ func InitAuthServer(router *gin.Engine) {
 	router.GET("/token", func(context *gin.Context) {
 		authServer.HandleTokenRequest(context.Writer, context.Request)
 	})
+
+	log.Println("Auth server OK")
 }
