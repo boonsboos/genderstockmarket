@@ -1,8 +1,12 @@
 package routes
 
 import (
+	ctx "context"
+	"log"
 	"math/rand"
 	"net/http"
+	auth "spectrum300/Auth"
+	entities "spectrum300/Entities"
 	util "spectrum300/Util"
 	"time"
 
@@ -13,12 +17,14 @@ func init() {
 	rand.New(rand.NewSource(time.Now().UnixMilli()))
 }
 
-const allowedChars = "_-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
 func Signup(context *gin.Context) {
 
 	// generate random state string of at least 32 characters
-	state = util.GenerateRandomString(32)
+	state := util.GenerateRandomString(32)
+
+	// FIXME: prod domain
+	context.SetCookie("oauthState", state, 60, "", "localhost", true, true)
+	// NB: should probably be saved server side
 
 	// redirect to github OAuth portal
 	context.Redirect(http.StatusPermanentRedirect,
@@ -33,19 +39,67 @@ func Signup(context *gin.Context) {
 
 }
 
+func loginFail(context *gin.Context) {
+	context.String(http.StatusForbidden, "failed to log in, try again")
+	time.Sleep(3 * time.Second)
+	context.Redirect(http.StatusPermanentRedirect, "/login")
+}
+
+type SignupResponse struct {
+	ID     string `json:"id"`
+	Secret string `json:"secret"`
+}
+
 func SubmitSignup(context *gin.Context) {
-	authCode, found := context.GetPostForm("code")
+	// get auth code to make requests to github
+	authCode, found := context.GetQuery("code")
 	if !found || authCode == "" {
-		context.String(http.StatusForbidden, "failed to log in, try again")
-		time.Sleep(3 * time.Second)
-		context.Redirect(http.StatusPermanentRedirect, "/login")
+		loginFail(context)
+		log.Println("code param not found")
+		return
 	}
 
-	// use code to make request for username
-	// create new player
-	// save player to database
+	// get state string
+	state, found := context.GetQuery("state")
+	if !found || state == "" {
+		loginFail(context)
+		log.Println("state param not found")
+		return
+	}
 
-	// create a new oauth client
+	stateCookie, err := context.Cookie("oauthState")
+	if err != nil {
+		loginFail(context)
+		log.Println("cookie oauthState not found")
+		return
+	}
 
-	// redirect to success (play?) page
+	// verify if state sent by github is the same as
+	// the state we saved as a cookie
+	if state != stateCookie {
+		loginFail(context)
+		log.Println("State does not match")
+		return
+	}
+
+	token, err := util.GetUserAccessToken(authCode)
+	if token == "" || err != nil {
+		context.String(http.StatusBadRequest, "something went wrong. try again later!")
+		return
+	}
+
+	username, err := util.GetGithubUsername(token)
+	if username == "" || err != nil {
+		context.String(http.StatusBadRequest, "something went wrong. try again later!")
+		return
+	}
+
+	entities.SaveNewPlayer(username)
+
+	user, _ := auth.ClientStore.GetByID(ctx.Background(), username)
+
+	context.JSON(http.StatusOK, SignupResponse{
+		ID:     username,
+		Secret: user.GetSecret(),
+	})
 }

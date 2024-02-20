@@ -6,7 +6,8 @@ CREATE TABLE Players (
     Username varchar(24) NOT NULL,
     NetWorth NUMERIC(102, 2) NOT NULL,
 
-    UNIQUE (Username)
+    UNIQUE (Username),
+    CHECK (Username <> '')
 );
 
 -- //
@@ -35,7 +36,7 @@ CREATE TABLE Player_Firm (
 
 -- //
 
-CREATE TABLE Companies(
+CREATE TABLE Companies (
     ID SERIAL PRIMARY KEY,
     CompanyName varchar(30) NOT NULL, -- NOTE: should all be normalized to lowercase!
     StockName varchar(5) NOT NULL,
@@ -54,7 +55,9 @@ CREATE TABLE Company_StockPrice (
     -- should never be updated twice at the same time!
     UNIQUE (CompanyID, Updated),
 
-    FOREIGN KEY (CompanyID) REFERENCES Companies (ID) ON DELETE RESTRICT
+    FOREIGN KEY (CompanyID) REFERENCES Companies (ID) ON DELETE RESTRICT,
+
+    CHECK (StockPrice >= 0.01)
 );
 
 CREATE TABLE Company_BalanceSheet (
@@ -64,7 +67,7 @@ CREATE TABLE Company_BalanceSheet (
     CurrentLiabilities NUMERIC(102, 2) NOT NULL,
     NonCurrentLiabilities NUMERIC(102, 2) NOT NULL,
     Equity NUMERIC(102, 2) NOT NULL,
-    Reservers NUMERIC(102, 2) NOT NULL,
+    Reserves NUMERIC(102, 2) NOT NULL,
 
     FOREIGN KEY (CompanyID) REFERENCES Companies (ID) ON DELETE CASCADE
 );
@@ -122,4 +125,14 @@ CREATE TABLE Market (
 
     FOREIGN KEY (PlayerID) REFERENCES Players (ID) ON DELETE RESTRICT,
     FOREIGN KEY (CompanyID) REFERENCES Companies (ID) ON DELETE RESTRICT
+);
+
+-- //
+
+CREATE TABLE IF NOT EXISTS oauth2_clients (
+    ID text PRIMARY KEY,
+    Secret text NOT NULL,
+    Domain text NOT NULL,
+
+    CHECK (ID <> '')
 );

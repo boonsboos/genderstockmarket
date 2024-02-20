@@ -14,27 +14,27 @@ import (
 )
 
 var AuthServer server.Server
-var ClientStore oauthpg.ClientStore
+var ClientStore SpectrumClientStore
 
 // https://github.com/go-oauth2/oauth2 readme
 func InitAuthServer(router *gin.Engine) {
 	// database stores
-	adapter := pgx4adapter.NewConn(database.DatabaseConnection.Conn)
-	tokenStore, err := oauthpg.NewTokenStore(adapter, oauthpg.WithTokenStoreGCInterval(time.Minute))
+	adapterConn := pgx4adapter.NewPool(&database.DatabaseConnection)
+
+	tokenStore, err := oauthpg.NewTokenStore(adapterConn, oauthpg.WithTokenStoreGCInterval(time.Minute))
 	if err != nil {
 		log.Fatal("Failed to created token store:", err.Error())
 	}
 	log.Println("Token store OK")
-	ClientStore, err := oauthpg.NewClientStore(adapter)
+
+	ClientStore, err := NewClientStore()
 	if err != nil {
 		log.Fatal("Failed to created client store:", err.Error())
 	}
 	log.Println("Client store OK")
 
 	manager := manage.NewDefaultManager()
-
 	manager.MapClientStorage(ClientStore)
-
 	manager.MapTokenStorage(tokenStore)
 
 	authServer := server.NewDefaultServer(manager)

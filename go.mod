@@ -6,6 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/jackc/pgx/v4 v4.18.1
+	github.com/shopspring/decimal v1.3.1
 	github.com/vgarvardt/go-oauth2-pg/v4 v4.4.4
 	github.com/vgarvardt/go-pg-adapter v1.0.0
 )
