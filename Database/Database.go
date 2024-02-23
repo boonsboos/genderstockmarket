@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-var DatabaseConnection pgxpool.Pool = NewDatabase()
+var Pool pgxpool.Pool = NewDatabase()
 
 func NewDatabase() pgxpool.Pool {
 	conn, err := pgxpool.Connect(context.Background(), util.Options.DatabaseURL+"/"+util.Options.DatabaseName+"?sslmode=disable")

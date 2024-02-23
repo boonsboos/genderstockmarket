@@ -8,13 +8,11 @@ import (
 
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/models"
-	"github.com/jackc/pgx/v4"
 )
 
 // since https://github.com/vgarvardt/go-oauth2-pg does not do its thing quite as efficiently as i would like,
 // i am implementing my own Client Store based off their implementation.
-type SpectrumClientStore struct {
-}
+type SpectrumClientStore struct{}
 
 func NewClientStore() (SpectrumClientStore, error) {
 	return SpectrumClientStore{}, nil
@@ -23,9 +21,9 @@ func NewClientStore() (SpectrumClientStore, error) {
 // enter the username to get the client info
 func (c SpectrumClientStore) GetByID(ctx context.Context, id string) (oauth2.ClientInfo, error) {
 
-	resultSet, err := database.DatabaseConnection.Query(
+	resultSet, err := database.Pool.Query(
 		ctx,
-		"SELECT * FROM oauth2_clients WHERE id = $1",
+		"SELECT * FROM oauth2_clients WHERE ID = $1",
 		id,
 	)
 	if err != nil {
@@ -50,25 +48,22 @@ func (c SpectrumClientStore) GetByID(ctx context.Context, id string) (oauth2.Cli
 	return nil, errors.New("client not found")
 }
 
-func (s *SpectrumClientStore) CreateClient(username string) (oauth2.ClientInfo, error) {
+func (s *SpectrumClientStore) CreateClient(username string, id int) (oauth2.ClientInfo, error) {
 
 	secret := util.GenerateRandomString(48)
 
-	database.DatabaseConnection.BeginFunc(context.Background(), func(tx pgx.Tx) error {
-		_, err := database.DatabaseConnection.Exec(
-			context.Background(),
-			"INSERT INTO oauth2_clients (ID, Secret, Domain)\n"+
-				"VALUES ($1, $2, $3);",
-			username,
-			secret,
-			"http://localhost", // should this change?
-		)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	_, err := database.Pool.Exec(
+		context.Background(),
+		"INSERT INTO oauth2_clients (ID, Secret, Domain, UserID)\n"+
+			"VALUES ($1, $2, $3, $4);",
+		username,
+		secret,
+		"http://localhost", // should this change?
+		id,
+	)
+	if err != nil {
+		return &models.Client{}, err
+	}
 
 	return &models.Client{
 		ID:     username,

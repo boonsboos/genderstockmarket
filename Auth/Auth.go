@@ -2,15 +2,11 @@ package auth
 
 import (
 	"log"
-	database "spectrum300/Database"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/server"
-	oauthpg "github.com/vgarvardt/go-oauth2-pg/v4"
-	"github.com/vgarvardt/go-pg-adapter/pgx4adapter"
 )
 
 var AuthServer server.Server
@@ -19,9 +15,8 @@ var ClientStore SpectrumClientStore
 // https://github.com/go-oauth2/oauth2 readme
 func InitAuthServer(router *gin.Engine) {
 	// database stores
-	adapterConn := pgx4adapter.NewPool(&database.DatabaseConnection)
 
-	tokenStore, err := oauthpg.NewTokenStore(adapterConn, oauthpg.WithTokenStoreGCInterval(time.Minute))
+	tokenStore, err := NewTokenStore()
 	if err != nil {
 		log.Fatal("Failed to created token store:", err.Error())
 	}
