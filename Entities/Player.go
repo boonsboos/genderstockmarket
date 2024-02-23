@@ -27,16 +27,9 @@ type Player struct {
 
 // saves a new player to the database, creating an oauth client at the same time
 func SaveNewPlayer(name string) error {
-
-	_, err := auth.ClientStore.CreateClient(name)
-	if err != nil {
-		log.Println("Failed to save new OAuth client:", err.Error())
-		return err
-	}
-
-	_, err = database.DatabaseConnection.Exec(context.Background(),
+	_, err := database.Pool.Exec(context.Background(),
 		"INSERT INTO Players (Username, NetWorth)\n"+
-			"VALUES ($1, 100.00);",
+			"VALUES ($1, 100.00) ON CONFLICT DO NOTHING;",
 		name,
 	)
 	if err != nil {
@@ -44,12 +37,49 @@ func SaveNewPlayer(name string) error {
 		return err
 	}
 
+	// get the player ID
+	id, err := GetPlayerIDByUsername(name)
+	if err != nil {
+		log.Println("Failed to save new user, ID not found? ", err.Error())
+		return err
+	}
+
+	log.Println("saving new oauth client")
+	_, err = auth.ClientStore.CreateClient(name, id)
+	if err != nil {
+		log.Println("Failed to save new OAuth client:", err.Error())
+		return err
+	}
+
 	return nil
+}
+
+func GetPlayerIDByUsername(name string) (int, error) {
+	rs, err := database.Pool.Query(
+		context.Background(),
+		"SELECT ID FROM Players WHERE Username = $1",
+		name,
+	)
+	if err != nil {
+		log.Println("Failed to query ID for player with Username=", name)
+		return -1, errors.New("Player not found")
+	}
+	if rs.Next() {
+		values, err := rs.Values()
+		if err != nil {
+			log.Println("Failed to get values while getting ID of player with Username=", name)
+			return -1, err
+		}
+
+		return int(values[0].(int32)), nil
+	}
+
+	return -1, errors.New("Player not found")
 }
 
 // returns the player's total balance across all their bank accounts
 func GetPlayerTotalBalance(id int) (decimal.Decimal, error) {
-	rs, err := database.DatabaseConnection.Query(
+	rs, err := database.Pool.Query(
 		context.Background(),
 		"SELECT SUM(Balance::NUMERIC)::text AS Total FROM Bank_Accounts WHERE PlayerID = $1;",
 		id,

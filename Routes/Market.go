@@ -26,7 +26,7 @@ func HistoricalStockPrices(context *gin.Context) {
 
 }
 
-// GET /market/stocks/:id/purchase?amount
+// POST /market/stocks/:id/purchase?amount
 //
 // amount - 1 if omitted.
 // purchases the amount of the stock
@@ -34,7 +34,7 @@ func PurchaseStock(context *gin.Context) {
 
 }
 
-// GET /market/stocks/:id/sell?amount
+// POST /market/stocks/:id/sell?amount
 //
 // amount - 1 if omitted.
 // purchases the amount of the provided stock
@@ -42,7 +42,7 @@ func SellStock(context *gin.Context) {
 
 }
 
-// GET /market/stocks/:id/call?time=(\d(d|w|m|y))
+// POST /market/stocks/:id/call?time=(\d(d|w|m|y))
 //
 // buys a call option in the provided stock during the selected time frame
 // (expects the stock to go down)
@@ -50,7 +50,7 @@ func BuyStockCall(context *gin.Context) {
 
 }
 
-// GET /market/stocks/:id/put?time=(\d(d|w|m|y))
+// POST /market/stocks/:id/put?time=(\d(d|w|m|y))
 //
 // buys a put option in the provided stock during the selected time frame
 // (expects the stock to go up)

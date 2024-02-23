@@ -18,5 +18,5 @@ func main() {
 
 	r.Run(":8100")
 
-	defer database.DatabaseConnection.Close()
+	defer database.Pool.Close()
 }

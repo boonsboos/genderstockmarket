@@ -23,7 +23,7 @@ func Signup(context *gin.Context) {
 	state := util.GenerateRandomString(32)
 
 	// FIXME: prod domain
-	context.SetCookie("oauthState", state, 60, "", "localhost", true, true)
+	context.SetCookie("oauthState", state, 60, "", "localhost:8100", true, true)
 	// NB: should probably be saved server side
 
 	// redirect to github OAuth portal
@@ -59,28 +59,28 @@ func SubmitSignup(context *gin.Context) {
 		return
 	}
 
-	// get state string
-	state, found := context.GetQuery("state")
-	if !found || state == "" {
-		loginFail(context)
-		log.Println("state param not found")
-		return
-	}
+	// // get state string
+	// state, found := context.GetQuery("state")
+	// if !found || state == "" {
+	// 	loginFail(context)
+	// 	log.Println("state param not found")
+	// 	return
+	// }
 
-	stateCookie, err := context.Cookie("oauthState")
-	if err != nil {
-		loginFail(context)
-		log.Println("cookie oauthState not found")
-		return
-	}
+	// stateCookie, err := context.Cookie("oauthState")
+	// if err != nil {
+	// 	loginFail(context)
+	// 	log.Println("cookie oauthState not found")
+	// 	return
+	// }
 
-	// verify if state sent by github is the same as
-	// the state we saved as a cookie
-	if state != stateCookie {
-		loginFail(context)
-		log.Println("State does not match")
-		return
-	}
+	// // verify if state sent by github is the same as
+	// // the state we saved as a cookie
+	// if state != stateCookie {
+	// 	loginFail(context)
+	// 	log.Println("State does not match")
+	// 	return
+	// }
 
 	token, err := util.GetUserAccessToken(authCode)
 	if token == "" || err != nil {
@@ -94,9 +94,24 @@ func SubmitSignup(context *gin.Context) {
 		return
 	}
 
-	entities.SaveNewPlayer(username)
+	user, err := auth.ClientStore.GetByID(ctx.Background(), username)
+	if err != nil {
+		log.Println(err.Error(), "Attempting to create new client...")
+	}
 
-	user, _ := auth.ClientStore.GetByID(ctx.Background(), username)
+	if user == nil {
+		err = entities.SaveNewPlayer(username)
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
+
+		user, err = auth.ClientStore.GetByID(ctx.Background(), username)
+		if err != nil {
+			log.Println("Player client still not found by ID:", err.Error())
+			return
+		}
+	}
 
 	context.JSON(http.StatusOK, SignupResponse{
 		ID:     username,
