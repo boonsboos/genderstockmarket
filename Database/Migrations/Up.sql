@@ -140,11 +140,11 @@ CREATE TABLE IF NOT EXISTS oauth2_clients (
 );
 
 CREATE TABLE IF NOT EXISTS oauth2_tokens (
-    ID text PRIMARY KEY,
+    ID integer PRIMARY KEY,
     Code text NOT NULL,
     CreatedAt timestamp DEFAULT NOW(),
     ExpiresAt timestamp NOT NULL,
 
-    FOREIGN KEY (ID) REFERENCES oauth2_clients (ID),
+    FOREIGN KEY (ID) REFERENCES Players(ID),
     CHECK (ExpiresAt > NOW())
-)
+);

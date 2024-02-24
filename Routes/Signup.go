@@ -20,10 +20,10 @@ func init() {
 func Signup(context *gin.Context) {
 
 	// generate random state string of at least 32 characters
-	state := util.GenerateRandomString(32)
+	state := auth.GenerateRandomString(32)
 
 	// FIXME: prod domain
-	context.SetCookie("oauthState", state, 60, "", "localhost:8100", true, true)
+	context.SetCookie("oauthState", state, 60, "", "localhost", true, true)
 	// NB: should probably be saved server side
 
 	// redirect to github OAuth portal
@@ -99,7 +99,7 @@ func SubmitSignup(context *gin.Context) {
 		log.Println(err.Error(), "Attempting to create new client...")
 	}
 
-	if user == nil {
+	if user.Domain == "" {
 		err = entities.SaveNewPlayer(username)
 		if err != nil {
 			log.Println(err.Error())
@@ -115,6 +115,6 @@ func SubmitSignup(context *gin.Context) {
 
 	context.JSON(http.StatusOK, SignupResponse{
 		ID:     username,
-		Secret: user.GetSecret(),
+		Secret: user.Secret,
 	})
 }
