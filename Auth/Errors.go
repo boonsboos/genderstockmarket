@@ -16,7 +16,7 @@ var (
 	}
 	InternalServerError = AuthError{
 		"internal server error",
-		"internal server error",
+		"this is not your fault, try again later.",
 	}
 	Unauthorized = AuthError{
 		"unauthorized",

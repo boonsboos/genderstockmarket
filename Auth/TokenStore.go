@@ -22,8 +22,9 @@ func (store SpectrumTokenStore) Create(ctx context.Context, token Token) error {
 		"INSERT INTO oauth2_tokens (ID, Code, ExpiresAt)\n"+
 			"VALUES ($1, $2, $3)\n"+
 			"ON CONFLICT (ID)\n"+
-			"DO UPDATE SET ID = EXCLUDED.ID,"+
-			"ExpiresAt = EXCLUDED.ExpiresAt;", // if token gets re-requested before expiry
+			"DO UPDATE SET Code = EXCLUDED.Code,"+
+			"CreatedAt = EXCLUDED.CreatedAt,"+
+			"ExpiresAt = EXCLUDED.ExpiresAt WHERE oauth2_tokens.ID = $1;", // if token gets re-requested before expiry
 		token.ID,
 		token.Code,
 		token.ExpiresAt,

@@ -3,8 +3,8 @@
 
 CREATE TABLE Players (
     ID SERIAL PRIMARY KEY,
-    Username varchar(24) NOT NULL,
-    NetWorth NUMERIC(102, 2) NOT NULL,
+    Username varchar(39) NOT NULL,
+    Wallet NUMERIC(102,2) NOT NULL,
 
     UNIQUE (Username),
     CHECK (Username <> '')
@@ -25,8 +25,8 @@ CREATE TABLE Firms (
 );
 
 CREATE TABLE Player_Firm (
-    PlayerID integer,
-    FirmID integer,
+    PlayerID integer NOT NULL,
+    FirmID integer NOT NULL,
 
     UNIQUE (PlayerID), -- Player can only be in one firm at once
 
@@ -91,6 +91,8 @@ CREATE TABLE Bank_Accounts (
     PlayerID integer NOT NULL,
     Balance NUMERIC(102,2) DEFAULT 0,
 
+    UNIQUE(BankID, PlayerID) -- player can only have one account per bank
+
     FOREIGN KEY (BankID) REFERENCES Banks (ID) ON DELETE CASCADE,
     FOREIGN KEY (PlayerID) REFERENCES Players (ID) ON DELETE CASCADE
 );
@@ -132,7 +134,6 @@ CREATE TABLE Market (
 CREATE TABLE IF NOT EXISTS oauth2_clients (
     ID text PRIMARY KEY,
     Secret text NOT NULL,
-    Domain text NOT NULL,
     UserID integer NOT NULL,
 
     CHECK (ID <> ''),

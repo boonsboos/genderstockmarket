@@ -1,7 +1,6 @@
 package routes
 
 import (
-	ctx "context"
 	"log"
 	"math/rand"
 	"net/http"
@@ -94,19 +93,19 @@ func SubmitSignup(context *gin.Context) {
 		return
 	}
 
-	user, err := auth.ClientStore.GetByID(ctx.Background(), username)
+	user, err := auth.ClientStore.GetByID(username)
 	if err != nil {
 		log.Println(err.Error(), "Attempting to create new client...")
 	}
 
-	if user.Domain == "" {
+	if user.ID == "" {
 		err = entities.SaveNewPlayer(username)
 		if err != nil {
 			log.Println(err.Error())
 			return
 		}
 
-		user, err = auth.ClientStore.GetByID(ctx.Background(), username)
+		user, err = auth.ClientStore.GetByID(username)
 		if err != nil {
 			log.Println("Player client still not found by ID:", err.Error())
 			return

@@ -6,30 +6,25 @@ import (
 	"log"
 	auth "spectrum300/Auth"
 	database "spectrum300/Database"
-	"strconv"
 
+	"github.com/jackc/pgtype"
 	"github.com/shopspring/decimal"
 )
 
-// contains minimal user information
-type PlayerInfo struct {
-	Name     string          `json:"name"`
-	NetWorth decimal.Decimal `json:"net_worth"` // should be fine for now
-}
-
-// contains the full data about the player
+// contains the full data of the player entity
 type Player struct {
 	// ID should not be shown to the API user,
 	// just for internal purposes
-	ID uint64 `json:"userID"`
-	PlayerInfo
+	ID     int             `json:"userID"`
+	Name   string          `json:"username"`
+	Wallet decimal.Decimal `json:"wallet"`
 }
 
 // saves a new player to the database, creating an oauth client at the same time
 func SaveNewPlayer(name string) error {
 	_, err := database.Pool.Exec(context.Background(),
-		"INSERT INTO Players (Username, NetWorth)\n"+
-			"VALUES ($1, 100.00) ON CONFLICT DO NOTHING;",
+		"INSERT INTO Players (Username)\n"+
+			"VALUES ($1) ON CONFLICT DO NOTHING;",
 		name,
 	)
 	if err != nil {
@@ -44,10 +39,15 @@ func SaveNewPlayer(name string) error {
 		return err
 	}
 
-	log.Println("saving new oauth client")
 	_, err = auth.ClientStore.CreateClient(name, id)
 	if err != nil {
 		log.Println("Failed to save new OAuth client:", err.Error())
+		return err
+	}
+
+	err = CreateStarterBankAccountForPlayer(id)
+	if err != nil {
+		log.Println("Failed to save starter bank account for player with ID:", id, err.Error())
 		return err
 	}
 
@@ -77,27 +77,49 @@ func GetPlayerIDByUsername(name string) (int, error) {
 	return -1, errors.New("Player not found")
 }
 
-// returns the player's total balance across all their bank accounts
-func GetPlayerTotalBalance(id int) (decimal.Decimal, error) {
+type PlayerStats struct {
+	Username           string          `json:"username"`
+	TotalTradesDone    uint64          `json:"totalTrades"`
+	TotalTradingVolume decimal.Decimal `json:"totalTradingVolume"`
+	Firm               string
+}
+
+func GetPlayerProfile(id int) (Player, error) {
 	rs, err := database.Pool.Query(
 		context.Background(),
-		"SELECT SUM(Balance::NUMERIC)::text AS Total FROM Bank_Accounts WHERE PlayerID = $1;",
+		"SELECT ID, Username, Wallet FROM Players WHERE ID = $1",
 		id,
 	)
 	if err != nil {
-		log.Println("Failed to get total balance for player with ID=", id)
-		return decimal.Zero, err
+		log.Println("Failed to get profile for Player:", id)
+		return Player{}, errors.New("Player not found")
 	}
-
 	if rs.Next() {
 		values, err := rs.Values()
 		if err != nil {
-			log.Println("Failed to get values while getting total balance for player with ID=", id)
-			return decimal.Zero, err
+			return Player{}, err
 		}
 
-		return decimal.NewFromString(values[0].(string))
+		var wallet_str string
+		n := values[2].(pgtype.Numeric)
+		err = n.AssignTo(&wallet_str)
+		if err != nil {
+			log.Println("Failed to convert db numeric to string")
+			return Player{}, err
+		}
+
+		wallet, err := decimal.NewFromString(wallet_str)
+		if err != nil {
+			log.Println("kanker error", err.Error())
+			return Player{}, err
+		}
+
+		return Player{
+			int(values[0].(int32)),
+			values[1].(string),
+			wallet,
+		}, nil
 	}
 
-	return decimal.Zero, errors.New("player with ID=" + strconv.Itoa(id) + " not found")
+	return Player{}, errors.New("Player not found")
 }

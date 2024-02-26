@@ -51,7 +51,6 @@ type Token struct {
 type Client struct {
 	ID     string
 	Secret string
-	Domain string
 	UserID int
 }
 
@@ -83,7 +82,7 @@ func ValidateTokenRequest(params url.Values) (string, string, error) {
 		return "", "", errors.New("this grant type is not supported")
 	}
 
-	clientInfo, err := ClientStore.GetByID(context.Background(), client)
+	clientInfo, err := ClientStore.GetByID(client)
 	if err != nil {
 		log.Println("Failed to get client in Token Request:", err.Error())
 		return "", "", errors.New("internal server error")
@@ -98,7 +97,7 @@ func ValidateTokenRequest(params url.Values) (string, string, error) {
 
 func CreateNewToken(client, secret string) (Token, error) {
 
-	clientInfo, err := ClientStore.GetByID(context.Background(), client)
+	clientInfo, err := ClientStore.GetByID(client)
 	if err != nil {
 		log.Println("Failed to get ID of player while creating new token")
 		return Token{}, err
